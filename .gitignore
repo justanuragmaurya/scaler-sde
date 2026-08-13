@@ -10,3 +10,5 @@ signal.db-shm
 backend/uploads/
 .env
 .env.local
+*.tsbuildinfo
+.rebuild_history.py
