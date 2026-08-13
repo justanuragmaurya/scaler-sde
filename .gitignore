@@ -1,0 +1,12 @@
+.DS_Store
+node_modules
+.next
+.venv
+__pycache__
+*.pyc
+signal.db
+signal.db-wal
+signal.db-shm
+backend/uploads/
+.env
+.env.local

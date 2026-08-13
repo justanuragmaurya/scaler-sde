@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+*.pyc
+signal.db
+signal.db-wal
+signal.db-shm
+uploads/
+.env

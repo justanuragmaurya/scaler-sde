@@ -1,0 +1,4 @@
+# Signal Clone frontend
+.next
+node_modules
+.env.local
