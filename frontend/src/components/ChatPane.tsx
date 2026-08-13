@@ -12,6 +12,8 @@ import { Icon, icons } from "./Icons";
 import { Composer } from "./Composer";
 
 const REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "🔥"];
+const EMPTY_MESSAGES: ChatMessage[] = [];
+const EMPTY_TYPING: { user_id: string; display_name: string }[] = [];
 
 export function ChatPane({
   convo,
@@ -22,8 +24,8 @@ export function ChatPane({
   self: User;
   onTyping: (typing: boolean) => void;
 }) {
-  const messages = useChat((s) => s.messages[convo.id] ?? []);
-  const typing = useChat((s) => s.typing[convo.id] ?? []);
+  const messages = useChat((s) => s.messages[convo.id] ?? EMPTY_MESSAGES);
+  const typing = useChat((s) => s.typing[convo.id] ?? EMPTY_TYPING);
   const loadMessages = useChat((s) => s.loadMessages);
   const setInfoOpen = useUi((s) => s.setInfoOpen);
   const setMobileShowChat = useUi((s) => s.setMobileShowChat);
