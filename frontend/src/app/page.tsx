@@ -1,19 +1,26 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <h1 className="text-3xl font-semibold">Signal clone</h1>
-      </main>
-    </div>
-  );
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { AppShell } from "@/components/AppShell";
+import { useAuth } from "@/store/auth";
+
+export default function HomePage() {
+  const router = useRouter();
+  const user = useAuth((s) => s.user);
+  const hydrated = useAuth((s) => s.hydrated);
+
+  useEffect(() => {
+    if (hydrated && !user) router.replace("/login");
+  }, [hydrated, user, router]);
+
+  if (!hydrated || !user) {
+    return (
+      <div className="flex h-full items-center justify-center text-sm text-[var(--text-muted)]">
+        Loading…
+      </div>
+    );
+  }
+
+  return <AppShell self={user} />;
 }
