@@ -1,13 +1,13 @@
 # Signal Clone
 
-A Signal Desktop-style messenger for the SDE fullstack assignment: real-time chats, groups, receipts, and a privacy-focused UI. Encryption is mocked.
+A Signal Desktop-style messenger : real-time chats, groups, receipts, and a privacy-focused UI. Encryption is mocked.
 
 ## Tech stack
 
 - **Frontend:** Next.js 16 (App Router, TypeScript), Tailwind CSS v4, Zustand
 - **Backend:** FastAPI, SQLAlchemy 2.0, SQLite, WebSockets
 - **Auth:** Phone + mock OTP (`123456`), JWT access token in `localStorage`, rotating refresh tokens hashed in SQLite (httpOnly cookie)
-- **Uploads:** Cloudflare R2 / AWS S3 via presigned URLs (local disk fallback when S3 env vars are unset)
+- **Uploads:** Cloudflare R2 / AWS S3 via presigned URLs only
 
 ## Architecture
 
@@ -15,7 +15,7 @@ A Signal Desktop-style messenger for the SDE fullstack assignment: real-time cha
 Browser (Next.js)
   REST  →  FastAPI /api/*
   WS    →  FastAPI /ws?token=...
-  PUT   →  R2/S3 (presigned) or /api/uploads/local/...
+  PUT   →  R2/S3 (presigned)
 FastAPI
   SQLite (users, contacts, conversations, messages, receipts, reactions, refresh_tokens)
 ```
@@ -93,7 +93,7 @@ Alembic lives in `backend/alembic/` (initial migration `001_initial`). Startup a
 | GET/POST | `/api/conversations/{id}/messages` | History / send |
 | POST | `/api/conversations/{id}/read` | Read receipts |
 | POST | `/api/messages/{id}/reactions` | Toggle emoji |
-| POST | `/api/uploads/presign` | S3/R2 or local upload URL |
+| POST | `/api/uploads/presign` | S3/R2 presigned upload URL |
 | WS | `/ws?token=` | `message:new`, `message:status`, `typing`, `presence`, `reaction`, `group:updated` |
 
 ## Object storage
@@ -109,15 +109,12 @@ S3_REGION=auto
 S3_PUBLIC_BASE_URL=https://pub-xxx.r2.dev   # optional public CDN
 ```
 
-The client requests a presigned PUT, uploads the file directly, then sends a message with `attachment_key`. Allow PUT from the frontend origin in the bucket CORS policy.
-
-Without those variables, files are stored under `backend/uploads/`.
+The client requests a presigned PUT, uploads the file directly, then sends a message with `attachment_key`. Allow PUT from the frontend origin in the bucket CORS policy. S3/R2 env vars are required.
 
 ## Deploy
 
-- **Frontend:** Vercel, root `frontend/`. Set `NEXT_PUBLIC_API_URL` (https API host) and `NEXT_PUBLIC_WS_URL` (`wss://.../ws`).
-- **Backend:** Render Web Service, root `backend/`, start `uvicorn app.main:app --host 0.0.0.0 --port $PORT`. Attach a persistent disk at `/data` and set `DATABASE_URL=sqlite:////data/signal.db`.
-- Production cookies: `COOKIE_SECURE=true`, `COOKIE_SAMESITE=none`, `FRONTEND_ORIGIN=https://your-app.vercel.app`.
+- **Frontend:** `https://scaler-sde.anuragmaurya.com` — set `NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_WS_URL` (see env below).
+- **Backend:** `https://scaler-backend.anuragmaurya.com` — CORS allows the frontend origin. Use `COOKIE_SECURE=true` and `COOKIE_SAMESITE=none` so the refresh cookie works across subdomains.
 
 ## Assumptions
 

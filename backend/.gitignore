@@ -4,5 +4,4 @@ __pycache__/
 signal.db
 signal.db-wal
 signal.db-shm
-uploads/
 .env
