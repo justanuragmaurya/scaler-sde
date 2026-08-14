@@ -9,12 +9,14 @@ export function initials(name: string) {
 
 export function formatTime(iso: string) {
   const date = new Date(iso);
+  if (Date.now() - date.getTime() < 60_000) return "Now";
   return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
 export function formatListTime(iso: string) {
   const date = new Date(iso);
   const now = new Date();
+  if (now.getTime() - date.getTime() < 60_000) return "Now";
   const sameDay = date.toDateString() === now.toDateString();
   if (sameDay) return formatTime(iso);
   const yesterday = new Date(now);

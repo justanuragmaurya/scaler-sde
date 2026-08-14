@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
+import { formatLastSeen } from "@/lib/format";
 import type { Conversation, User } from "@/lib/types";
 import { useAuth } from "@/store/auth";
 import { useChat } from "@/store/chat";
@@ -283,7 +284,11 @@ export function InfoDrawer({ convo, self }: { convo: Conversation; self: User })
           size={72}
         />
         <div className="text-lg font-medium">{convo.other_user?.display_name || convo.name}</div>
-        <div className="text-sm text-[var(--text-muted)]">{convo.other_user?.phone || `${convo.members.length} members`}</div>
+        <div className="text-sm text-[var(--text-muted)]">
+          {convo.other_user
+            ? formatLastSeen(convo.other_user.last_seen_at, convo.other_user.online)
+            : `${convo.members.length} members`}
+        </div>
         {convo.other_user?.about ? <p className="text-center text-sm">{convo.other_user.about}</p> : null}
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-2">

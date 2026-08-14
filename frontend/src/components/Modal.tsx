@@ -14,7 +14,7 @@ export function Modal({
   wide?: boolean;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
       <div
         className={`max-h-[85vh] overflow-auto rounded-2xl bg-[var(--bg-list)] shadow-2xl ${wide ? "w-full max-w-lg" : "w-full max-w-md"}`}
         onClick={(e) => e.stopPropagation()}

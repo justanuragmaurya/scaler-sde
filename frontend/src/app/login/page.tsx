@@ -45,7 +45,7 @@ export default function LoginPage() {
           autoFocus
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-rail)] px-4 py-3 text-lg outline-none focus:border-signal"
+          className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-search)] px-4 py-3 text-lg outline-none focus:border-signal"
           placeholder="+1 555 000 0001"
         />
         {error ? <p className="text-sm text-red-400">{error}</p> : null}

@@ -4,7 +4,10 @@ import { useRef, useState } from "react";
 import { uploadFile } from "@/lib/api";
 import type { ChatMessage, User } from "@/lib/types";
 import { useChat } from "@/store/chat";
-import { Icon, icons } from "./Icons";
+import { useUi } from "@/store/ui";
+import { EmojiIcon, Icon, icons, MicIcon, PlusIcon, SendIcon } from "./Icons";
+
+const EMOJIS = ["😀", "😂", "😍", "❤️", "👍", "🙏", "🔥", "🎉", "😢", "😮", "💯", "😊"];
 
 export function Composer({
   convoId,
@@ -21,16 +24,26 @@ export function Composer({
 }) {
   const send = useChat((s) => s.send);
   const addToast = useChat((s) => s.addToast);
+  const openModal = useUi((s) => s.openModal);
   const [text, setText] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [emojiOpen, setEmojiOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const areaRef = useRef<HTMLTextAreaElement>(null);
   const typingRef = useRef<number | undefined>(undefined);
+  const canSend = Boolean(text.trim() || file);
 
   function handleChange(value: string) {
     setText(value);
     onTyping(true);
     if (typingRef.current) window.clearTimeout(typingRef.current);
     typingRef.current = window.setTimeout(() => onTyping(false), 1200);
+  }
+
+  function insertEmoji(emoji: string) {
+    setText((prev) => prev + emoji);
+    setEmojiOpen(false);
+    areaRef.current?.focus();
   }
 
   async function submit(e: React.FormEvent) {
@@ -64,6 +77,7 @@ export function Composer({
       reactions: [],
     };
     setText("");
+    if (areaRef.current) areaRef.current.style.height = "auto";
     onClearReply();
     onTyping(false);
     const pending = file;
@@ -89,9 +103,9 @@ export function Composer({
   }
 
   return (
-    <form onSubmit={submit} className="border-t border-[var(--border)] bg-[var(--bg-composer)] px-3 py-3">
+    <form onSubmit={submit} className="px-3 pb-3 pt-1">
       {reply ? (
-        <div className="mb-2 flex items-center justify-between rounded-xl bg-[var(--bg-rail)] px-3 py-2 text-sm">
+        <div className="mb-2 flex items-center justify-between rounded-xl bg-[var(--bg-pill)] px-3 py-2 text-sm">
           <div>
             <div className="text-xs text-signal">Replying to {reply.sender_name}</div>
             <div className="truncate text-[var(--text-muted)]">{reply.body || reply.attachment_name}</div>
@@ -102,22 +116,38 @@ export function Composer({
         </div>
       ) : null}
       {file ? (
-        <div className="mb-2 flex items-center justify-between rounded-xl bg-[var(--bg-rail)] px-3 py-2 text-sm">
+        <div className="mb-2 flex items-center justify-between rounded-xl bg-[var(--bg-pill)] px-3 py-2 text-sm">
           <span className="truncate">{file.name}</span>
           <button type="button" onClick={() => setFile(null)}>
             <Icon d={icons.x} size={16} />
           </button>
         </div>
       ) : null}
-      <div className="flex items-end gap-2">
-        <button
-          type="button"
-          className="mb-1 rounded-full p-2 text-[var(--text-muted)] hover:bg-[var(--bg-hover)]"
-          onClick={() => fileRef.current?.click()}
-          title="Attach"
-        >
-          <Icon d={icons.paperclip} size={20} />
-        </button>
+      <div className="relative flex items-end rounded-[26px] bg-[var(--bg-pill)] px-1.5 py-1">
+        <div className="relative">
+          <button
+            type="button"
+            className="rounded-full p-2 text-[var(--text-muted)] hover:text-[var(--text)]"
+            onClick={() => setEmojiOpen((v) => !v)}
+            title="Emoji"
+          >
+            <EmojiIcon size={22} />
+          </button>
+          {emojiOpen ? (
+            <div className="absolute bottom-11 left-0 z-20 grid w-[220px] grid-cols-6 gap-1 rounded-2xl bg-[var(--bg-list)] p-2 shadow-xl">
+              {EMOJIS.map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  className="rounded-lg p-1 text-lg hover:bg-[var(--bg-hover)]"
+                  onClick={() => insertEmoji(emoji)}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
         <input
           ref={fileRef}
           type="file"
@@ -125,9 +155,14 @@ export function Composer({
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
         />
         <textarea
+          ref={areaRef}
           value={text}
-          onChange={(e) => handleChange(e.target.value)}
-          placeholder="Signal message"
+          onChange={(e) => {
+            handleChange(e.target.value);
+            e.target.style.height = "auto";
+            e.target.style.height = `${Math.min(e.target.scrollHeight, 160)}px`;
+          }}
+          placeholder="Message"
           rows={1}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
@@ -135,14 +170,29 @@ export function Composer({
               void submit(e);
             }
           }}
-          className="max-h-40 min-h-[44px] flex-1 resize-none rounded-2xl bg-[var(--bg-rail)] px-4 py-3 text-sm outline-none"
+          className="max-h-40 min-h-[40px] flex-1 resize-none bg-transparent px-1 py-[10px] text-[15px] outline-none placeholder:text-[var(--text-muted)]"
         />
+        {canSend ? (
+          <button type="submit" className="rounded-full p-2 text-signal" title="Send">
+            <SendIcon size={20} />
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="rounded-full p-2 text-[var(--text-muted)] hover:text-[var(--text)]"
+            title="Voice message"
+            onClick={() => openModal("coming-soon", "Voice messages")}
+          >
+            <MicIcon size={20} />
+          </button>
+        )}
         <button
-          type="submit"
-          className="mb-1 rounded-full bg-signal p-2.5 text-white hover:bg-signal-2"
-          title="Send"
+          type="button"
+          className="rounded-full p-2 text-[var(--text-muted)] hover:text-[var(--text)]"
+          onClick={() => fileRef.current?.click()}
+          title="Attach"
         >
-          <Icon d={icons.send} size={18} />
+          <PlusIcon size={20} />
         </button>
       </div>
     </form>
